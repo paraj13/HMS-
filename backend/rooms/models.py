@@ -1,4 +1,4 @@
-from mongoengine import Document, StringField, FloatField, IntField, ListField, DateTimeField, BooleanField, ReferenceField
+from mongoengine import Document, StringField, FloatField, IntField, ListField, DateTimeField, BooleanField, ReferenceField, DictField
 import datetime
 from backend.constants import STATUS_VALUES, ROOM_TYPES, MEAL_TYPES, DIET_TYPES, CUISINE_TYPES, SPICE_LEVELS
 
@@ -85,3 +85,14 @@ class Meal(Document):
     def save(self, *args, **kwargs):
         self.updated_at = datetime.datetime.utcnow()
         return super(Meal, self).save(*args, **kwargs)
+    
+class Order(Document):
+    meal = ReferenceField(Meal, required=True)
+    quantity = IntField(default=1)
+    add_ons = ListField(StringField())
+    spice_preference = StringField()
+    upsell = StringField()
+    delivery_info = DictField()  # {"room": "101", "last_name": "Patel"}
+    note = StringField()
+    payment_method = StringField()
+    status = StringField(default="pending")  # pending / preparing / delivered

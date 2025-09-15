@@ -1,6 +1,7 @@
 import axios from "axios";
 
-const API_BASE_URL = "http://localhost:8000/api/rooms";
+const API_BASE_URL = process.env.NEXT_PUBLIC_API_BASE_URL;
+
 
 export type Room = {
   id?: string;
@@ -15,18 +16,15 @@ export type Room = {
 
 // List all rooms
 export const listRooms = async () => {
-  const res = await axios.get(`${API_BASE_URL}/`, {
-    headers: {
-      Authorization: `Bearer ${localStorage.getItem("token")}`,
-    },
+  const res = await axios.get(`${API_BASE_URL}/rooms/`, {
   });
   return res.data.data;
 };
 
 // Get room by id
 export const getRoom = async (id: string) => {
-  const res = await axios.get(`${API_BASE_URL}/${id}`,{
-    headers: { "Content-Type": "multipart/form-data" , "Authorization": `Bearer ${localStorage.getItem("token")}` },
+  const res = await axios.get(`${API_BASE_URL}/rooms/${id}`,{
+    headers: { "Content-Type": "multipart/form-data"  },
     
   });
   return res.data.data;
@@ -43,28 +41,15 @@ export const createRoom = async (room: Room) => {
   if (room.other_images) {
     (room.other_images as File[]).forEach((file) => formData.append("other_images", file));
   }
-  const res = await axios.post(`${API_BASE_URL}/`, formData, {
-    headers: { "Content-Type": "multipart/form-data" , "Authorization": `Bearer ${localStorage.getItem("token")}` },
-    
+  const res = await axios.post(`${API_BASE_URL}/rooms/create/`, formData, {
+ headers: { 
+      "Content-Type": "multipart/form-data",
+      "Authorization": `Bearer ${localStorage.getItem("token")}` 
+    },    
   });
   return res.data.data;
 };
 
-// Update room
-// export const updateRoom = async (id: string, room: Room) => {
-//   const formData = new FormData();
-//   formData.append("type", room.type);
-//   formData.append("status", room.status);
-//   formData.append("price", room.price.toString());
-//   if (room.cover_image instanceof File) formData.append("cover_image", room.cover_image);
-//   if (room.other_images) {
-//     (room.other_images as File[]).forEach((file) => formData.append("other_images", file));
-//   }
-//   const res = await axios.put(`${API_BASE_URL}/update/${id}`, formData, {
-//     headers: { "Content-Type": "multipart/form-data" , "Authorization": `Bearer ${localStorage.getItem("token")}` },
-//   });
-//   return res.data.data;
-// };
 
 export const updateRoom = async (id: string, room: Room) => {
   const formData = new FormData();
@@ -84,7 +69,7 @@ export const updateRoom = async (id: string, room: Room) => {
     });
   }
 
-  const res = await axios.put(`${API_BASE_URL}/${id}`, formData, {
+  const res = await axios.put(`${API_BASE_URL}/${id}/rooms/update/`, formData, {
     headers: { 
       "Content-Type": "multipart/form-data",
       "Authorization": `Bearer ${localStorage.getItem("token")}` 
@@ -96,7 +81,7 @@ export const updateRoom = async (id: string, room: Room) => {
 
 // Delete room
 export const deleteRoom = async (id: string) => {
-  const res = await axios.delete(`${API_BASE_URL}/${id}`, {
+  const res = await axios.delete(`${API_BASE_URL}/rooms/${id}/delete/`, {
     headers: { Authorization: `Bearer ${localStorage.getItem("token")}` },
   });
   return res.data.success;

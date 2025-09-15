@@ -7,7 +7,7 @@ import Backdrop from "@/layout/Backdrop";
 import React from "react";
 import { Toaster } from "react-hot-toast";
 import VoiceButton from "@/components/header/VoiceButton";
-
+import { usePathname } from "next/navigation"; // import this
 
 export default function AdminLayout({
   children,
@@ -15,6 +15,8 @@ export default function AdminLayout({
   children: React.ReactNode;
 }) {
   const { isExpanded, isHovered, isMobileOpen } = useSidebar();
+  const pathname = usePathname(); // get current route
+
 
   const mainContentMargin = isMobileOpen
     ? "ml-0"
@@ -35,7 +37,8 @@ export default function AdminLayout({
         {/* Header */}
         <AppHeader />
 
-          <VoiceButton /> {/* Voice button visible on all pages */}
+        {/* {pathname !== "/voice-chat" && <VoiceButton />} */}
+        
         {/* Page Content */}
         <div className="p-4 mx-auto max-w-(--breakpoint-2xl) md:p-6">
           {children}

@@ -1,5 +1,5 @@
 from rest_framework import serializers
-from rooms.models import Meal
+from rooms.models import Meal, Order
 import datetime
 from backend.constants import MEAL_TYPES, DIET_TYPES, CUISINE_TYPES, SPICE_LEVELS
 from backend.utils.save_file import save_file
@@ -62,6 +62,7 @@ class MealSerializer(serializers.Serializer):
         return {
             "id": str(obj.id),
             "name": obj.name,
+            "category": obj.category,
             "description": obj.description,
             "currency": obj.currency,
             "price": obj.price,
@@ -76,3 +77,20 @@ class MealSerializer(serializers.Serializer):
             "is_special": obj.is_special,
             "rating": obj.rating,
         }
+
+class OrderSerializer(serializers.Serializer):
+    id = serializers.CharField(read_only=True)
+    meal = serializers.CharField()  # ID of the meal
+    quantity = serializers.IntegerField()
+    notes = serializers.CharField(required=False)
+    add_ons = serializers.ListField(child=serializers.CharField(), required=False)
+    spice_preference = serializers.CharField(required=False)
+    upsell = serializers.CharField(required=False)
+    delivery_info = serializers.DictField(required=False)
+    payment_method = serializers.CharField(required=False)
+    status = serializers.CharField(required=False)
+
+    def create(self, validated_data):
+        meal_id = validated_data.pop("meal")
+        meal = Meal.objects.get(id=meal_id)
+        return Order.objects.create(meal=meal, **validated_data)

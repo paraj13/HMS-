@@ -1,61 +1,65 @@
-import re
-import datetime
-from rooms.models import Service, ServiceBooking
+from chatbot.utils.response_helpers import chatbot_response
 
-def book_service(user, text):
+
+class ServiceBookingSession:
+    def __init__(self):
+        self.selected_service = None
+        self.date = None
+        self.time = None
+        self.confirmed = False
+
+
+def book_service(session: ServiceBookingSession, text_lower: str):
     """
-    Books a service based on service_id or name, with optional date/time.
+    Handles multi-step booking flow for services.
     """
-    text_lower = text.lower()
+    # Step 1: Select service
+    if not session.selected_service:
+        session.selected_service = text_lower.strip()
+        return chatbot_response(
+            message=f"📅 When would you like to book the {session.selected_service}? (e.g., 2025-09-05)",
+            response_type="message"
+        ), session
 
-    # --- 1. Try to extract service ID ---
-    service = None
-    service_id_match = re.search(r"service\s*(\d+)", text_lower)
-    if service_id_match:
-        try:
-            service_id = int(service_id_match.group(1))
-            service = Service.objects.filter(id=service_id).first()
-        except (ValueError, TypeError):
-            service = None
+    # Step 2: Select date
+    if not session.date:
+        session.date = text_lower.strip()
+        return chatbot_response(
+            message=f"⏰ What time on {session.date} would you like the {session.selected_service}? (e.g., 3 PM)",
+            response_type="message"
+        ), session
 
-    # --- 2. If no ID, try by service name (fuzzy match) ---
-    if not service:
-        cleaned_text = re.sub(r"\b(book|reserve|service)\b", "", text_lower).strip()
+    # Step 3: Select time
+    if not session.time:
+        session.time = text_lower.strip()
+        return chatbot_response(
+            message=f"✅ Please confirm: Book {session.selected_service} on {session.date} at {session.time}? (yes/no)",
+            response_type="message"
+        ), session
 
-        if not cleaned_text:
-            return None, "Which service would you like to book? Please provide a service name or ID."
+    # Step 4: Confirm
+    if not session.confirmed:
+        if "yes" in text_lower:
+            session.confirmed = True
+            return chatbot_response(
+                message=f"🎉 Your {session.selected_service} is booked for {session.date} at {session.time}.",
+                response_type="success"
+            ), session
+        elif "no" in text_lower:
+            # Reset booking
+            session = ServiceBookingSession()
+            return chatbot_response(
+                message="❌ Booking cancelled. You can start again by choosing a service.",
+                response_type="error"
+            ), session
+        else:
+            return chatbot_response(
+                message="❓ Please reply with 'yes' or 'no' to confirm.",
+                response_type="message"
+            ), session
 
-        matches = Service.objects.filter(name__icontains=cleaned_text)
-
-        if not matches:
-            return None, f"Sorry, I couldn’t find any service matching '{cleaned_text}'. Please try again with a valid service name."
-
-        if matches.count() > 1:
-            options = "\n".join([f"• {s.name} (ID: {s.id})" for s in matches])
-            return None, f"I found multiple services matching '{cleaned_text}'. Please specify one:\n{options}"
-
-        # Exactly one match → select it
-        service = matches.first()
-
-    # --- 3. If still no service ---
-    if not service:
-        return None, "Service not found. Please specify a valid service name or ID."
-
-    # --- 4. Extract date/time if provided ---
-    date_match = re.search(r"on (\d{4}-\d{2}-\d{2})", text_lower)
-    time_match = re.search(r"at (\d{2}:\d{2})", text_lower)
-
-    date_str = date_match.group(1) if date_match else str(datetime.date.today())
-    time_str = time_match.group(1) if time_match else "12:00"
-
-    # --- 5. Create booking ---
-    booking = ServiceBooking(
-        user=user,
-        service=service,
-        date=date_str,
-        time=time_str,
-        status="pending"
-    )
-    booking.save()
-
-    return booking, f"✅ Service '{service.name}' booked for {date_str} at {time_str}."
+    # Already confirmed
+    return chatbot_response(
+        message=f"✅ Your {session.selected_service} booking is already confirmed.",
+        response_type="success"
+    ), session

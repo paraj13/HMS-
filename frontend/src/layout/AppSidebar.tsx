@@ -14,7 +14,6 @@ const AppSidebar: React.FC = () => {
   const { isExpanded, isMobileOpen, isHovered, setIsHovered } = useSidebar();
   const pathname = usePathname();
   const router = useRouter();
-
   const [openSubmenu, setOpenSubmenu] = useState(false);
   const subMenuRef = useRef<HTMLDivElement | null>(null);
   const [subMenuHeight, setSubMenuHeight] = useState(0);
@@ -54,7 +53,7 @@ const AppSidebar: React.FC = () => {
       <div className={`py-8 flex ${!isExpanded && !isHovered ? "lg:justify-center" : "justify-start"}`}>
         <Link href="/dashboard">
           {isExpanded || isHovered || isMobileOpen ? (
-            <h1 className="text-2xl font-bold text-blue-800 dark:text-white/90">HMS Admin Panel</h1>
+            <h1 className="text-2xl font-bold text-blue-800 dark:text-white/90">H M S </h1>
           ) : (
             <Image src="/images/logo/logo-icon.svg" alt="Logo" width={32} height={32} />
           )}
@@ -66,7 +65,7 @@ const AppSidebar: React.FC = () => {
         <ul className="flex flex-col gap-4">
 
 
-                    {/* ✅ Example: Guest Dashboard link */}
+        {/* ✅ Example: Guest Dashboard link */}
           {role === "guest" && (
             <li>
               <Link
@@ -81,7 +80,7 @@ const AppSidebar: React.FC = () => {
             </li>
           )}
 
-                   {role !== "guest" && (
+                   {/* {role !== "guest" && (
             <li>
               <Link
                 href="/dashboard"
@@ -93,7 +92,7 @@ const AppSidebar: React.FC = () => {
                 {(isExpanded || isHovered || isMobileOpen) && <span className="menu-item-text">Dashboard</span>}
               </Link>
             </li>
-          )}
+          )} */}
 
           {/* ✅ Users Menu (only for management) */}
           {role === "management" && (
@@ -162,7 +161,6 @@ const AppSidebar: React.FC = () => {
             </li>
           )}
 
-         {(role === "guest" || role === "management") && (
   <>
     {/* Services Menu */}
     <li>
@@ -208,7 +206,8 @@ const AppSidebar: React.FC = () => {
               </Link>
             </li>
   </>
-)}
+
+         {(role === "guest" || role === "management") && (
 
   <li>
     <Link
@@ -223,6 +222,7 @@ const AppSidebar: React.FC = () => {
       )}
     </Link>
   </li>
+         )}
 
 
         </ul>

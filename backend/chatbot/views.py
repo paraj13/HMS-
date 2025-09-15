@@ -44,3 +44,110 @@ class ChatbotView(APIView):
             "confidence": round(confidence, 2),
             "entities": entities,
         })
+
+
+import json
+import requests
+from django.conf import settings
+from django.http import JsonResponse, HttpRequest
+from django.views.decorators.csrf import csrf_exempt
+
+
+@csrf_exempt
+def create_chat(request: HttpRequest) -> JsonResponse:
+    """
+    Creates a new chat session with Retell API.
+    """
+    if request.method != "POST":
+        return JsonResponse({"error": "POST request required"}, status=400)
+
+    try:
+        data = json.loads(request.body)
+        agent_id = data.get("agent_id")
+        agent_version = data.get("agent_version", 1)
+        metadata = data.get("metadata", {})
+        retell_llm_dynamic_variables = data.get("retell_llm_dynamic_variables", {})
+
+        if not agent_id:
+            return JsonResponse({"error": "agent_id is required"}, status=400)
+
+        url = f"{settings.RETELL_API_URL}/create-chat"
+        headers = {
+            "Authorization": f"Bearer {settings.RETELL_API_KEY}",
+            "Content-Type": "application/json"
+        }
+        payload = {
+            "agent_id": agent_id,
+            "agent_version": agent_version,
+            "metadata": metadata,
+            "retell_llm_dynamic_variables": retell_llm_dynamic_variables
+        }
+
+        response = requests.post(url, headers=headers, json=payload)
+
+        if response.status_code != 201:
+            return JsonResponse(
+                {
+                    "error": "Retell API request failed",
+                    "status_code": response.status_code,
+                    "response": response.text
+                },
+                status=response.status_code
+            )
+
+        return JsonResponse(response.json(), safe=False, status=201)
+
+    except json.JSONDecodeError:
+        return JsonResponse({"error": "Invalid JSON payload"}, status=400)
+    except requests.RequestException as e:
+        return JsonResponse({"error": f"HTTP request failed: {str(e)}"}, status=500)
+    except Exception as e:
+        return JsonResponse({"error": str(e)}, status=500)
+
+
+@csrf_exempt
+def retell_create_chat_completion(request: HttpRequest) -> JsonResponse:
+    """
+    Sends a user message to Retell API and returns the chat completion response.
+    """
+    if request.method != "POST":
+        return JsonResponse({"error": "POST request required"}, status=400)
+
+    try:
+        data = json.loads(request.body)
+        chat_id = data.get("chat_id")
+        user_message = data.get("content")
+
+        if not chat_id or not user_message:
+            return JsonResponse({"error": "chat_id and content are required"}, status=400)
+
+        url = f"{settings.RETELL_API_URL}/create-chat-completion"
+        headers = {
+            "Authorization": f"Bearer {settings.RETELL_API_KEY}",
+            "Content-Type": "application/json"
+        }
+        payload = {
+            "chat_id": chat_id,
+            "content": user_message
+        }
+
+        response = requests.post(url, headers=headers, json=payload)
+
+        if response.status_code != 201:
+            return JsonResponse(
+                {
+                    "error": "Retell API request failed",
+                    "status_code": response.status_code,
+                    "response": response.text
+                },
+                status=response.status_code
+            )
+
+        return JsonResponse(response.json(), safe=False, status=201)
+
+    except json.JSONDecodeError:
+        return JsonResponse({"error": "Invalid JSON payload"}, status=400)
+    except requests.RequestException as e:
+        return JsonResponse({"error": f"HTTP request failed: {str(e)}"}, status=500)
+    except Exception as e:
+        return JsonResponse({"error": str(e)}, status=500)

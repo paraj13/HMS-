@@ -1,5 +1,6 @@
 "use client";
 import React, { createContext, useContext, useState, useEffect } from "react";
+import VoiceButton from '@/components/header/VoiceButton';
 
 type SidebarContextType = {
   isExpanded: boolean;
@@ -78,6 +79,7 @@ export const SidebarProvider: React.FC<{ children: React.ReactNode }> = ({
         toggleSubmenu,
       }}
     >
+
       {children}
     </SidebarContext.Provider>
   );

@@ -1,11 +1,10 @@
 import axios from "axios";
 import { User, UserLoginResponse, DashboardData } from "@/types/user";
 
-
-const API_BASE_URL = "http://localhost:8000/api/accounts";
+const API_BASE_URL = process.env.NEXT_PUBLIC_API_BASE_URL;
 
 export const getDashboardData = async (): Promise<DashboardData> => {
-  const response = await axios.get(`${API_BASE_URL}/dashboard/`, {
+  const response = await axios.get(`${API_BASE_URL}/accounts/dashboard/`, {
     headers: {
       Authorization: `Bearer ${localStorage.getItem("token")}`,
     },
@@ -14,13 +13,13 @@ export const getDashboardData = async (): Promise<DashboardData> => {
 };
 
 export const loginUser = async (email: string, password: string): Promise<UserLoginResponse> => {
-  const response = await axios.post(`${API_BASE_URL}/login/`, { email, password });
+  const response = await axios.post(`${API_BASE_URL}/accounts/login/`, { email, password });
   return response.data.data;
 };
 
 // 👉 Create user
 export const createUser = async (userData: User) => {
-  const response = await axios.post(`${API_BASE_URL}/create/`, userData, {
+  const response = await axios.post(`${API_BASE_URL}/accounts/create/`, userData, {
     headers: { Authorization: `Bearer ${localStorage.getItem("token")}` },
   });
   return response.data;
@@ -28,7 +27,7 @@ export const createUser = async (userData: User) => {
 
 // 👉 Update user
 export const updateUser = async (userId: string, userData: User) => {
-  const response = await axios.put(`${API_BASE_URL}/update/${userId}`, userData, {
+  const response = await axios.put(`${API_BASE_URL}/accounts/update/${userId}`, userData, {
     headers: { Authorization: `Bearer ${localStorage.getItem("token")}` },
   });
   return response.data;
@@ -36,7 +35,7 @@ export const updateUser = async (userId: string, userData: User) => {
 
 // 👉 Get user by id
 export const getUserById = async (userId: string) => {
-  const response = await axios.get(`${API_BASE_URL}/detail/${userId}`, {
+  const response = await axios.get(`${API_BASE_URL}/accounts/detail/${userId}`, {
     headers: { Authorization: `Bearer ${localStorage.getItem("token")}` },
   });
   return response.data.data;
@@ -44,7 +43,7 @@ export const getUserById = async (userId: string) => {
 
 // 👉 List users by role
 export const listUsersByRole = async (role: string) => {
-  const response = await axios.get(`${API_BASE_URL}/list/?role=${role}`, {
+  const response = await axios.get(`${API_BASE_URL}/accounts/list/?role=${role}`, {
     headers: { Authorization: `Bearer ${localStorage.getItem("token")}` },
   });
   return response.data;
@@ -52,7 +51,7 @@ export const listUsersByRole = async (role: string) => {
 
 // 👉 Delete user
 export const deleteUser = async (userId: string) => {
-  const response = await axios.delete(`${API_BASE_URL}/delete/${userId}`, {
+  const response = await axios.delete(`${API_BASE_URL}/accounts/delete/${userId}`, {
     headers: { Authorization: `Bearer ${localStorage.getItem("token")}` },
   });
   return response.data;
@@ -64,7 +63,7 @@ export const logoutUser = async () => {
   if (!refresh_token) throw new Error("No refresh token found");
 
   const response = await axios.post(
-    `${API_BASE_URL}/logout`,
+    `${API_BASE_URL}/accounts/logout`,
     { refresh_token }, 
     // {
     //   headers: { Authorization: `Bearer ${localStorage.getItem("token")}` }, // access token in header
@@ -73,6 +72,7 @@ export const logoutUser = async () => {
 
   localStorage.removeItem("token");
   localStorage.removeItem("refresh_token");
+  localStorage.removeItem("role");
 
   return response.data;
 };

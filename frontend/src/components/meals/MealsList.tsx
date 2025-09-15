@@ -6,6 +6,8 @@ import toast from "react-hot-toast";
 import { useRouter } from "next/navigation";
 import { Pencil, Trash2, Star } from "lucide-react";
 import { getRole } from "@/utils/auth";
+import { badgeColors } from "@/constants/constants";
+ 
 
 export default function MealList() {
   const router = useRouter();
@@ -14,11 +16,11 @@ export default function MealList() {
   const [deletingId, setDeletingId] = useState<string | null>(null);
   const [role, setRole] = useState<string>("guest");
 
-  // 🔹 Handle File | string for image
+  // Handle File | string for image
   const getImageSrc = (image: string | File | undefined) => {
     if (!image) return "/images/img-not-found.png";
-    if (typeof image === "string") return image; // already URL
-    return URL.createObjectURL(image); // File preview
+    if (typeof image === "string") return image;
+    return URL.createObjectURL(image);
   };
 
   const fetchMeals = async () => {
@@ -75,18 +77,19 @@ export default function MealList() {
       {!Array.isArray(meals) || meals.length === 0 ? (
         <p className="text-center text-gray-500">No meals found</p>
       ) : (
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-5 gap-6">
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
           {meals.map((meal) => (
             <div
               key={meal.id}
-              className="bg-white shadow-md rounded-xl overflow-hidden flex flex-col"
+              className="bg-white shadow-md rounded-xl overflow-hidden flex flex-col cursor-pointer hover:shadow-lg transition-shadow"
+              onClick={() => router.push(`/meals/detail/${meal.id}`)} // Navigate to detail page
             >
               {/* Meal Image */}
-              <div className="w-full h-40">
+              <div className="w-full h-40 overflow-hidden">
                 <img
                   src={getImageSrc(meal.image)}
                   alt={meal.name}
-                  className="w-full h-full object-cover"
+                  className="w-full h-full object-cover transform transition-transform duration-300 hover:scale-105"
                 />
               </div>
 
@@ -96,10 +99,10 @@ export default function MealList() {
                   <h2 className="text-lg font-semibold text-gray-800">{meal.name}</h2>
                   <p className="text-gray-600 text-sm line-clamp-2">{meal.description}</p>
                   <div className="flex flex-wrap gap-1 mt-2 text-xs text-gray-500">
-                    <span className="px-2 py-1 bg-gray-100 rounded">{meal.meal_type}</span>
-                    <span className="px-2 py-1 bg-gray-100 rounded">{meal.diet_type}</span>
-                    <span className="px-2 py-1 bg-gray-100 rounded">{meal.cuisine_type}</span>
-                    <span className="px-2 py-1 bg-gray-100 rounded">🔥 {meal.spice_level}</span>
+                    <span className={`px-2 py-1 rounded ${badgeColors.meal_type}`}>{meal.meal_type}</span>
+                    <span className={`px-2 py-1 rounded ${badgeColors.diet_type}`}>{meal.diet_type}</span>
+                    <span className={`px-2 py-1 rounded ${badgeColors.cuisine_type}`}>{meal.cuisine_type}</span>
+                    <span className={`px-2 py-1 rounded ${badgeColors.spice_level}`}>🔥 {meal.spice_level}</span>
                   </div>
                   <div className="flex items-center mt-2">
                     <Star
@@ -123,13 +126,19 @@ export default function MealList() {
                 {role !== "guest" && (
                   <div className="flex mt-3 space-x-2">
                     <button
-                      onClick={() => router.push(`/meals/update/${meal.id}`)}
+                      onClick={(e) => {
+                        e.stopPropagation(); // prevent card click
+                        router.push(`/meals/update/${meal.id}`);
+                      }}
                       className="px-2 py-1 text-black rounded hover:bg-yellow-500 hover:text-white"
                     >
                       <Pencil size={16} />
                     </button>
                     <button
-                      onClick={() => handleDelete(meal.id!)}
+                      onClick={(e) => {
+                        e.stopPropagation(); // prevent card click
+                        handleDelete(meal.id!);
+                      }}
                       disabled={deletingId === meal.id}
                       className="px-2 py-1 text-black rounded hover:bg-red-600 hover:text-white disabled:opacity-50"
                     >

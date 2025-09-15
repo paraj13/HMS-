@@ -1,7 +1,7 @@
 import axios from "axios";
 
-const API_BASE_URL = "http://localhost:8000/api/services";
-const API_BASE_URL_LIST = "http://localhost:8000/api";
+const API_BASE_URL = process.env.NEXT_PUBLIC_API_BASE_URL;
+
 
 export type Service = {
   id?: string;
@@ -13,27 +13,23 @@ export type Service = {
 
 // ✅ Get all services
 export const listServices = async () => {
-  const res = await axios.get(`${API_BASE_URL}/`, {
-    headers: {
-      Authorization: `Bearer ${localStorage.getItem("token")}`,
-    },
+  const res = await axios.get(`${API_BASE_URL}/services/`, {
+    headers: { "Content-Type": "multipart/form-data" },
   });
   return res.data.data;
 };
 
 // ✅ Get service by id
 export const getService = async (id: string) => {
-  const res = await axios.get(`${API_BASE_URL}/${id}/`, {
-    headers: {
-      Authorization: `Bearer ${localStorage.getItem("token")}`,
-    },
+  const res = await axios.get(`${API_BASE_URL}/services/${id}/`, {
+    headers: { "Content-Type": "multipart/form-data" },
   });
   return res.data.data;
 };
 
 // ✅ Create service
 export const createService = async (service: Service) => {
-  const res = await axios.post(`${API_BASE_URL}/`, service, {
+  const res = await axios.post(`${API_BASE_URL}/services/create/`, service, {
     headers: {
       Authorization: `Bearer ${localStorage.getItem("token")}`,
     },
@@ -43,7 +39,7 @@ export const createService = async (service: Service) => {
 
 // ✅ Update service
 export const updateService = async (id: string, service: Service) => {
-  const res = await axios.put(`${API_BASE_URL}/${id}/`, service, {
+  const res = await axios.put(`${API_BASE_URL}/services/${id}/update/`, service, {
     headers: {
       Authorization: `Bearer ${localStorage.getItem("token")}`,
     },
@@ -53,7 +49,7 @@ export const updateService = async (id: string, service: Service) => {
 
 // ✅ Delete service
 export const deleteService = async (id: string) => {
-  const res = await axios.delete(`${API_BASE_URL}/${id}/`, {
+  const res = await axios.delete(`${API_BASE_URL}/services/${id}/delete/`, {
     headers: {
       Authorization: `Bearer ${localStorage.getItem("token")}`,
     },
@@ -77,7 +73,7 @@ export const bookService = async (serviceId: string, bookingData: BookingData = 
 };
 
 export async function fetchBookings() {
-  const res = await axios.get(`${API_BASE_URL_LIST}/bookings/`, {
+  const res = await axios.get(`${API_BASE_URL}/bookings/`, {
     headers: { Authorization: `Bearer ${localStorage.getItem("token")}` },
   });
   return res.data.data;
@@ -86,7 +82,7 @@ export async function fetchBookings() {
 // Update booking status (for admins)
 export async function updateBookingStatus(bookingId: string, status: string) {
   const res = await axios.post(
-    `${API_BASE_URL_LIST}/bookings/${bookingId}/status/`,
+    `${API_BASE_URL}/bookings/${bookingId}/status/`,
     { status },
     { headers: { Authorization: `Bearer ${localStorage.getItem("token")}` } }
   );

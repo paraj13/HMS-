@@ -31,7 +31,7 @@ export const SERVICE_CATEGORIES = [
 ];
 
 export const MEAL_TYPES = ["breakfast", "lunch", "dinner", "snack","dessert"]
-export const DIET_TYPES = ["veg", "nonveg", "vegan"]
+export const DIET_TYPES = ["veg", "non-veg", "vegan"]
 export const CUISINE_TYPES = ["indian", "chinese", "italian", "mexican", "other"]
 export const SPICE_LEVELS = ["mild", "medium", "spicy"]
 export const MEAL_CATEGORIES = [
@@ -64,3 +64,20 @@ export const CURRENCIES = [
   { code: "JPY", symbol: "¥", label: "JPY (¥)" },
 ];
 
+export const badgeColors: Record<string, string> = {
+  category: "bg-purple-100 text-purple-800",
+  meal_type: "bg-blue-100 text-blue-800",
+  diet_type: "bg-green-100 text-green-800",
+  cuisine_type: "bg-yellow-100 text-yellow-800",
+  spice_level: "bg-red-100 text-red-800",
+  is_special: "bg-pink-100 text-pink-800",
+};
+
+
+// constants.ts
+export const INITIAL_OPTIONS = [
+  "Show menu",
+  "Order food",
+  "Track order",
+  "Help",
+];

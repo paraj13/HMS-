@@ -175,3 +175,6 @@ CORS_ALLOWED_ORIGINS = [
 ]
 
 CORS_ALLOW_CREDENTIALS = True
+
+RETELL_API_KEY = os.getenv("RETELL_API_KEY")
+RETELL_API_URL = os.getenv("RETELL_API_URL", "https://api.retellai.com/")

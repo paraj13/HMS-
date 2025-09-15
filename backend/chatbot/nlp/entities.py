@@ -17,7 +17,7 @@ def get_meal_names():
 # -----------------------------
 ENTITY_MAP = {
     "name": get_meal_names(),
-    "room": ROOM_TYPES,
+    "type": ROOM_TYPES,
     "category": SERVICE_CATEGORIES,
     "meal_type": MEAL_TYPES,
     "category": get_meal_categories(),

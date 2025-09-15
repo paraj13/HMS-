@@ -45,15 +45,15 @@ export default function SignInForm() {
     try {
       const data: UserLoginResponse = await loginUser(email, password);
 
-      // localStorage.setItem("token", data.refresh_token);
+      localStorage.setItem("token", data.refresh_token);
 
-        const tokenCookie = serialize("token", data.refresh_token, {
-          path: "/",           // available on all routes
-          httpOnly: false,     // set true if you want only server access
-          maxAge: 60 * 60 * 24, // 1 day
-          sameSite: "lax",
-        });
-        document.cookie = tokenCookie;
+        // const tokenCookie = serialize("token", data.refresh_token, {
+        //   path: "/",           // available on all routes
+        //   httpOnly: false,     // set true if you want only server access
+        //   maxAge: 60 * 60 * 24, // 1 day
+        //   sameSite: "lax",
+        // });
+        // document.cookie = tokenCookie;
 
       localStorage.setItem("role", data.user.role); // store role for RBAC
 
