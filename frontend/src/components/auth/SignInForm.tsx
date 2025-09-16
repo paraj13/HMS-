@@ -4,7 +4,7 @@ import React, { useState } from "react";
 import toast from "react-hot-toast";
 import { loginUser } from "@/services/userService"; // import your login service
 import { UserLoginResponse } from "@/types/user";
-import { serialize } from "cookie";
+import { deleteCookie, setCookie } from "cookies-next";
 
 
 export default function SignInForm() {
@@ -45,17 +45,12 @@ export default function SignInForm() {
     try {
       const data: UserLoginResponse = await loginUser(email, password);
 
-      localStorage.setItem("token", data.refresh_token);
+      localStorage.setItem("token", data.refresh_token); 
+      setCookie("token", data.refresh_token, { path: "/" });
 
-        // const tokenCookie = serialize("token", data.refresh_token, {
-        //   path: "/",           // available on all routes
-        //   httpOnly: false,     // set true if you want only server access
-        //   maxAge: 60 * 60 * 24, // 1 day
-        //   sameSite: "lax",
-        // });
-        // document.cookie = tokenCookie;
-
-      localStorage.setItem("role", data.user.role); // store role for RBAC
+      // ✅ Store role separately
+      localStorage.setItem("role", data.user.role);
+      setCookie("role", data.user.role, { path: "/" });
 
       // redirect based on role (optional)
       window.location.href = "/dashboard";

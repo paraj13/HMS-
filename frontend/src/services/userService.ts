@@ -1,6 +1,6 @@
 import axios from "axios";
 import { User, UserLoginResponse, DashboardData } from "@/types/user";
-
+import { deleteCookie } from "cookies-next";
 const API_BASE_URL = process.env.NEXT_PUBLIC_API_BASE_URL;
 
 export const getDashboardData = async (): Promise<DashboardData> => {
@@ -59,20 +59,21 @@ export const deleteUser = async (userId: string) => {
 
 // 👉 Logout user
 export const logoutUser = async () => {
-  const refresh_token = localStorage.getItem("token");
+  // Get token from cookies instead of localStorage
+  const refresh_token = document.cookie
+    .split("; ")
+    .find((row) => row.startsWith("token="))
+    ?.split("=")[1];
+
   if (!refresh_token) throw new Error("No refresh token found");
 
-  const response = await axios.post(
-    `${API_BASE_URL}/accounts/logout`,
-    { refresh_token }, 
-    // {
-    //   headers: { Authorization: `Bearer ${localStorage.getItem("token")}` }, // access token in header
-    // }
-  );
+  const response = await axios.post(`${API_BASE_URL}/accounts/logout`, {
+    refresh_token,
+  });
 
-  localStorage.removeItem("token");
-  localStorage.removeItem("refresh_token");
-  localStorage.removeItem("role");
+  // Delete cookies
+  deleteCookie("token", { path: "/" });
+  deleteCookie("role", { path: "/" });
 
   return response.data;
 };

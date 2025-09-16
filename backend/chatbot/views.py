@@ -4,7 +4,6 @@ from rest_framework.response import Response
 from accounts.authentication import JWTAuthentication
 from accounts.permissions import RolePermission
 from chatbot.utils.voice_utils import audio_to_text
-
 from chatbot.nlp.intent import get_intent
 from chatbot.nlp.entities import extract_entities  
 from chatbot.nlp.router import handle_intent
@@ -46,108 +45,100 @@ class ChatbotView(APIView):
         })
 
 
-import json
-import requests
-from django.conf import settings
-from django.http import JsonResponse, HttpRequest
+# views.py
+from django.http import JsonResponse
 from django.views.decorators.csrf import csrf_exempt
+import json
+import os
+from retell import Retell
 
+# Initialize client with API key
+client = Retell(api_key=os.getenv("RETELL_API_KEY"))
 
 @csrf_exempt
-def create_chat(request: HttpRequest) -> JsonResponse:
-    """
-    Creates a new chat session with Retell API.
-    """
+def create_chat(request):
     if request.method != "POST":
-        return JsonResponse({"error": "POST request required"}, status=400)
+        return JsonResponse({"error": "Only POST allowed"}, status=405)
 
     try:
-        data = json.loads(request.body)
-        agent_id = data.get("agent_id")
-        agent_version = data.get("agent_version", 1)
-        metadata = data.get("metadata", {})
-        retell_llm_dynamic_variables = data.get("retell_llm_dynamic_variables", {})
+        # body = json.loads(request.body.decode("utf-8"))
+        agent_id = "agent_fe23290c453ecbcdf141bd322b"
+        # agent_version = body.get("agent_version", 1)
+        # metadata = body.get("metadata", {})
+        # retell_vars = body.get("retell_llm_dynamic_variables", {})
 
         if not agent_id:
             return JsonResponse({"error": "agent_id is required"}, status=400)
 
-        url = f"{settings.RETELL_API_URL}/create-chat"
-        headers = {
-            "Authorization": f"Bearer {settings.RETELL_API_KEY}",
-            "Content-Type": "application/json"
-        }
-        payload = {
-            "agent_id": agent_id,
-            "agent_version": agent_version,
-            "metadata": metadata,
-            "retell_llm_dynamic_variables": retell_llm_dynamic_variables
-        }
+        chat_response = client.chat.create(
+            agent_id=agent_id,
+            # agent_version=agent_version,
+            # metadata=metadata,
+            # retell_llm_dynamic_variables=retell_vars,
+        )
 
-        response = requests.post(url, headers=headers, json=payload)
+        return JsonResponse(chat_response.dict(), status=200)
 
-        if response.status_code != 201:
-            return JsonResponse(
-                {
-                    "error": "Retell API request failed",
-                    "status_code": response.status_code,
-                    "response": response.text
-                },
-                status=response.status_code
-            )
-
-        return JsonResponse(response.json(), safe=False, status=201)
-
-    except json.JSONDecodeError:
-        return JsonResponse({"error": "Invalid JSON payload"}, status=400)
-    except requests.RequestException as e:
-        return JsonResponse({"error": f"HTTP request failed: {str(e)}"}, status=500)
     except Exception as e:
         return JsonResponse({"error": str(e)}, status=500)
 
 
 @csrf_exempt
-def retell_create_chat_completion(request: HttpRequest) -> JsonResponse:
-    """
-    Sends a user message to Retell API and returns the chat completion response.
-    """
+def create_chat_completion(request):
     if request.method != "POST":
-        return JsonResponse({"error": "POST request required"}, status=400)
+        return JsonResponse({"error": "Only POST allowed"}, status=405)
 
     try:
-        data = json.loads(request.body)
-        chat_id = data.get("chat_id")
-        user_message = data.get("content")
+        body = json.loads(request.body.decode("utf-8"))
+        chat_id = body.get("chat_id")
+        content = body.get("content")
 
-        if not chat_id or not user_message:
+        if not chat_id or not content:
             return JsonResponse({"error": "chat_id and content are required"}, status=400)
 
-        url = f"{settings.RETELL_API_URL}/create-chat-completion"
-        headers = {
-            "Authorization": f"Bearer {settings.RETELL_API_KEY}",
-            "Content-Type": "application/json"
-        }
-        payload = {
-            "chat_id": chat_id,
-            "content": user_message
-        }
+        # Call Retell SDK
+        response = client.chat.create_chat_completion(
+            chat_id=chat_id,
+            content=content,
+        )
 
-        response = requests.post(url, headers=headers, json=payload)
+        # response is a pydantic model, convert to dict
+        return JsonResponse(response.dict(), status=200)
 
-        if response.status_code != 201:
-            return JsonResponse(
-                {
-                    "error": "Retell API request failed",
-                    "status_code": response.status_code,
-                    "response": response.text
-                },
-                status=response.status_code
-            )
+    except Exception as e:
+        return JsonResponse({"error": str(e)}, status=500)
+    
+@csrf_exempt
+def list_chats(request):
+    if request.method != "GET":
+        return JsonResponse({"error": "Only GET allowed"}, status=405)
 
-        return JsonResponse(response.json(), safe=False, status=201)
+    try:
+        chat_responses = client.chat.list()
+        # This returns a Pydantic model list, convert each item to dict
+        return JsonResponse([chat.dict() for chat in chat_responses], safe=False, status=200)
 
-    except json.JSONDecodeError:
-        return JsonResponse({"error": "Invalid JSON payload"}, status=400)
-    except requests.RequestException as e:
-        return JsonResponse({"error": f"HTTP request failed: {str(e)}"}, status=500)
+    except Exception as e:
+        return JsonResponse({"error": str(e)}, status=500)
+
+@csrf_exempt
+def end_chat(request, chat_id):
+    if request.method != "POST":
+        return JsonResponse({"error": "Only POST allowed"}, status=405)
+
+    try:
+        client.chat.end(chat_id)
+        return JsonResponse({"message": f"Chat {chat_id} ended successfully."}, status=200)
+
+    except Exception as e:
+        return JsonResponse({"error": str(e)}, status=500)
+    
+@csrf_exempt
+def retrieve_chat(request, chat_id):
+    if request.method != "GET":
+        return JsonResponse({"error": "Only GET allowed"}, status=405)
+    try:
+        chat_response = client.chat.retrieve(chat_id)
+        return JsonResponse(chat_response.dict(), status=200)
     except Exception as e:
         return JsonResponse({"error": str(e)}, status=500)

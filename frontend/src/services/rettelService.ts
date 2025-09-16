@@ -1,65 +1,48 @@
 import axios from "axios";
-const API_BASE_URL = "http://localhost:8000";
 
+const API_BASE_URL = process.env.NEXT_PUBLIC_API_BASE_URL;
 
-// ----------------- Types -----------------
-export interface VoiceResponse {
-  transcription?: string;
-  answer: {
-    message?: string;
-    suggestions?: { name: string; link?: string }[];
-    options?: { label: string; value: string }[];
-  };
-}
-
-// ----------------- Backend API Calls -----------------
-
-/**
- * Create a new chat session (optional if backend already maintains session)
- */
-export const createChatSession = async (agentId: string): Promise<any> => {
-  try {
-    const response = await axios.post(`${API_BASE_URL}/api/create-chat/`, {
-      agent_id: agentId,
-    });
-    return response.data;
-  } catch (error: any) {
-    console.error("Failed to create chat session:", error.response?.data || error.message);
-    throw new Error(error.response?.data?.error || "Failed to create chat session");
-  }
+export const createChat = async () => {
+  const res = await axios.post(`${API_BASE_URL}/create-chat/`);
+  return res.data; // should contain { chat_id }
 };
 
-/**
- * Send a message (text or audio) to backend and get a response from Retell API
- */
-export const sendVoiceToText = async (
-  content: string | Blob,
-  chatId: string
-): Promise<VoiceResponse> => {
-  try {
-    let response;
+export const createChatCompletion = async (chatId: string, content: string) => {
+  const res = await axios.post(`${API_BASE_URL}/create-chat-completion/`, {
+    chat_id: chatId,
+    content,
+  });
+  return res.data;
+};
 
-    if (content instanceof Blob) {
-      // Send audio
-      const formData = new FormData();
-      formData.append("content", content, "audio.wav");
-      formData.append("chat_id", "chat_d296cc0c5aa1080b400dd6e9d43");
+export const listChats = async () => {
+  const res = await axios.get(`${API_BASE_URL}/list-chats/`);
+  return res.data;
+};
 
-      response = await axios.post(`${API_BASE_URL}/api/create-chat-completion/`, formData, {
-        headers: { "Content-Type": "multipart/form-data" },
-      });
-    } else {
-      // Send text
-      response = await axios.post(
-        `${API_BASE_URL}/api/create-chat-completion/`,
-        { content, chat_id: "chat_d296cc0c5aa1080b400dd6e9d43" },
-        { headers: { "Content-Type": "application/json" } }
-      );
-    }
+export const endChat = async (chatId: string) => {
+  const res = await axios.post(`${API_BASE_URL}/end-chat/${chatId}/`);
+  return res.data;
+};
 
-    return response.data as VoiceResponse;
-  } catch (error: any) {
-    console.error("Failed to get chat response:", error.response?.data || error.message);
-    throw new Error(error.response?.data?.error || "Failed to get chat response");
-  }
+export const retrieveChat = async (chatId: string) => {
+  const response = await axios.get(`${API_BASE_URL}/retrieve-chat/${chatId}/`);
+  return response.data;
+};
+
+
+
+export const getStoredChatId = () => {
+  if (typeof window === "undefined") return null;
+  return localStorage.getItem("rettel_chat_id");
+};
+
+export const storeChatId = (chatId: string) => {
+  if (typeof window === "undefined") return;
+  localStorage.setItem("rettel_chat_id", chatId);
+};
+
+export const clearChatId = () => {
+  if (typeof window === "undefined") return;
+  localStorage.removeItem("rettel_chat_id");
 };
